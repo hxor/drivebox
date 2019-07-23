@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Dropbox\Client;
 use App\Dropfile;
 
 class DropfileController extends Controller
@@ -17,7 +16,7 @@ class DropfileController extends Controller
     public function index()
     {
         $files = Dropfile::all();
-        return view('pages.dropfile.index', compact('files'));
+        return view('pages.drop-index', compact('files'));
     }
 
     public function store(Request $request)
@@ -27,8 +26,8 @@ class DropfileController extends Controller
         // ]);
 
         try {
-            if ($request->hasFile('image')) {
-                $files = $request->file('image');
+            if ($request->hasFile('file')) {
+                $files = $request->file('file');
 
                 foreach ($files as $file) {
                     $fileExtension = $file->getClientOriginalExtension();
@@ -39,14 +38,15 @@ class DropfileController extends Controller
                     Storage::disk('dropbox')->putFileAs('public/upload', $file, $newName);
                     $this->dropbox->createSharedLinkWithSettings('public/upload/' . $newName);
 
-                    Upload::create([
+                    Dropfile::create([
                         'file'  => $newName,
                         'type'  => $mimeType,
                         'size'  => $fileSize
                     ]);
                 }
 
-                return "Message: File(s) has been uploaded";
+                // return "Message: File(s) has been uploaded";
+                return redirect('drop');
             }
         } catch (\Exception $e) {
             return "Message: {$e->getMessage()}";
@@ -77,11 +77,13 @@ class DropfileController extends Controller
         }
     }
 
-    public function destroy(Dropfile $dropfile)
+    public function destroy($id)
     {
         try {
-            Storage::disk('dropbox')->delete('public/upload/' . $upload->path);
-            return $upload->delete();
+            $file = Dropfile::find($id);
+            Storage::disk('dropbox')->delete('public/upload/' . $file->file);
+            $file->delete();
+            return redirect('drop');
         } catch (Exception $e) {
             return abort(404);
         }

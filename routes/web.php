@@ -19,5 +19,5 @@ Route::get('drop', 'DropfileController@index');
 Route::post('drop', 'DropfileController@store');
 Route::get('drop/{file}', 'DropfileController@show');
 Route::get('drop/{file}/download', 'DropfileController@download');
-Route::get('drop/{dropfile}/destroy', 'DropfileController@destroy');
+Route::get('drop/{id}/destroy', 'DropfileController@destroy');
 
